@@ -31,6 +31,8 @@
 | F-10 | Support Spanish and English UI languages | ✓ (v2 i18n) |
 | F-11 | Beer donation button linking to PayPal | ✓ (v2) |
 | F-12 | Compile to standalone Windows .exe (no console) | ✓ |
+| F-13 | Show a visible status bar so the user can see send state | ✓ |
+| F-14 | Optionally auto-send on application open, controlled by config | ✓ |
 
 ---
 
@@ -68,6 +70,8 @@ On startup:
   → ConfigManager.__init__(BASE_PATH) reads config.json
   → I18n.__init__(BASE_PATH, language) loads locales/{lang}.json
   → ReminderApp._load_config_into_ui() populates widgets
+  → app.py shows an initial status message in the status bar
+  → [if auto_send_on_open] app.py schedules send after the window is ready
 
 On save:
   ReminderApp._save_config() collects widget values
@@ -138,6 +142,12 @@ Status bar updates from the thread use `root.after(0, callback)` — the only th
 
 Because Outlook automation uses COM, each worker thread explicitly initializes and uninitializes COM before calling `win32com.client.Dispatch(...)`.
 
+### 4.7 Startup Status And Auto-Send
+
+- The status bar is visible from startup and begins with a translated ready message.
+- If `auto_send_on_open` is enabled in `config.json`, the app schedules `_send_email()` with `root.after(...)` after the window is created.
+- The send still uses the same runtime source of truth: the recipients, subject, body, and selected account currently loaded into the GUI.
+
 ---
 
 ## 5. Internationalization
@@ -183,7 +193,7 @@ else:
 
 ### 6.2 Backward Compatibility
 
-v2 config.json adds two new keys: `cuenta_seleccionada` and `language`.
+v2 config.json adds three runtime UI keys beyond the original v1 payload: `cuenta_seleccionada`, `language`, and `auto_send_on_open`.
 Existing v1 config.json files are fully compatible — missing keys get defaults via `config.setdefault()` pattern.
 
 ---

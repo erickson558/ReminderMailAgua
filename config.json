@@ -2,12 +2,15 @@
     "destinatarios": [
         "erickson007@gmail.com",
         "elsamaritza2016@gmail.com",
-		"erickson558@hotmail.com",
+        "erickson558@hotmail.com",
         "systemsolutionie@gmail.com",
         "erickson558@outlook.com"
     ],
     "asunto": "Reminder de Pagar el Agua del mes de [Mes anterior en letras]",
     "cuerpo": "Recordatorio de pagar el agua del [Mes anterior en letras] de [año en numero]",
     "auto_close": true,
-    "auto_close_delay": 60
+    "auto_close_delay": 60,
+    "auto_send_on_open": false,
+    "cuenta_seleccionada": "erickson558@hotmail.com",
+    "language": "es"
 }

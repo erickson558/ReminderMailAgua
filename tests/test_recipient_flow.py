@@ -37,6 +37,12 @@ class FakeEntry:
     def get(self):
         return self.value
 
+    def insert(self, index, value):
+        self.value = value
+
+    def set(self, value):
+        self.value = value
+
 
 class FakeText:
     def __init__(self, value=""):
@@ -45,6 +51,9 @@ class FakeText:
     def get(self, start, end):
         return self.value
 
+    def insert(self, index, value):
+        self.value = value
+
 
 class FakeVar:
     def __init__(self, value):
@@ -52,6 +61,18 @@ class FakeVar:
 
     def get(self):
         return self.value
+
+    def set(self, value):
+        self.value = value
+
+
+class FakeCombobox(FakeEntry):
+    def __init__(self, value=""):
+        super().__init__(value)
+        self.current_index = None
+
+    def current(self, index):
+        self.current_index = index
 
 
 class FakeButton:
@@ -77,15 +98,17 @@ class ReminderAppRecipientFlowTests(unittest.TestCase):
         app._listbox_recipients = FakeListbox(recipients)
         app._entry_subject = FakeEntry("Asunto")
         app._text_body = FakeText("Cuerpo")
-        app._combobox_account = FakeEntry("sender@example.com")
+        app._combobox_account = FakeCombobox("sender@example.com")
         app._auto_close_var = FakeVar(False)
         app._auto_close_delay_var = FakeEntry("60")
+        app._auto_send_on_open_var = FakeVar(False)
         app._btn_send = FakeButton()
         app._config = Mock()
         app._i18n = Mock(language="es")
         app._update_status = Mock()
         app._t = lambda key, **kwargs: key
         app._start_countdown = Mock()
+        app._accounts = ["sender@example.com", "other@example.com"]
         return app
 
     def test_get_recipients_from_ui_normalizes_and_deduplicates(self):
@@ -147,6 +170,7 @@ class ReminderAppRecipientFlowTests(unittest.TestCase):
 
     def test_save_config_persists_current_gui_recipients(self):
         app = self._build_app([" kept@example.com ", "KEPT@example.com", "second@example.com"])
+        app._auto_send_on_open_var.set(True)
 
         app._save_config()
 
@@ -155,6 +179,41 @@ class ReminderAppRecipientFlowTests(unittest.TestCase):
             saved_data["destinatarios"],
             ["kept@example.com", "second@example.com"],
         )
+        self.assertTrue(saved_data["auto_send_on_open"])
+
+    def test_schedule_auto_send_on_open_when_enabled(self):
+        app = self._build_app(["first@example.com"])
+        app._send_email = Mock()
+        app._auto_send_on_open_var.set(True)
+
+        app._schedule_auto_send_on_open_if_enabled()
+
+        self.assertEqual(app.root.after_calls, [(500, app._send_email)])
+        app._update_status.assert_called_once_with(
+            "msg_auto_send_pending", app_module.COLOR_STATUS_INFO
+        )
+
+    def test_load_config_populates_auto_send_and_account(self):
+        app = self._build_app([])
+        app._config.data = {
+            "destinatarios": [" gui@example.com ", "gui@example.com"],
+            "asunto": "Asunto cargado",
+            "cuerpo": "Cuerpo cargado",
+            "auto_close": True,
+            "auto_close_delay": 45,
+            "auto_send_on_open": True,
+            "cuenta_seleccionada": "other@example.com",
+        }
+
+        app._load_config_into_ui()
+
+        self.assertEqual(app._listbox_recipients.items, ["gui@example.com"])
+        self.assertEqual(app._entry_subject.get(), "Asunto cargado")
+        self.assertEqual(app._text_body.get("1.0", app_module.tk.END), "Cuerpo cargado")
+        self.assertTrue(app._auto_close_var.get())
+        self.assertEqual(app._auto_close_delay_var.get(), "45")
+        self.assertTrue(app._auto_send_on_open_var.get())
+        self.assertEqual(app._combobox_account.current_index, 1)
 
 
 if __name__ == "__main__":

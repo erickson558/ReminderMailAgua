@@ -10,6 +10,7 @@
     "auto_close": "Auto-close Settings",
     "auto_close_check": "Automatically close the application after sending",
     "auto_close_delay": "Waiting time before auto-close (seconds):",
+    "auto_send_on_open_check": "Automatically send the email when opening the application",
     "send": "Send Email",
     "save_config": "Save configuration",
     "exit": "Exit",
@@ -28,5 +29,7 @@
     "msg_error_save": "Error saving configuration: {e}",
     "msg_error_accounts": "Error getting Outlook accounts: {e}",
     "msg_sending": "Sending email...",
+    "msg_ready": "Ready to send.",
+    "msg_auto_send_pending": "Auto-send scheduled on application start.",
     "dialog_add_recipient": "Add recipient"
 }

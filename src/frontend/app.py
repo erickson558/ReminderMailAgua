@@ -9,7 +9,7 @@ El envío de correo se ejecuta en un hilo de fondo (threading.Thread) para
 que la interfaz nunca se congele durante la operación COM de Outlook.
 """
 import tkinter as tk
-from tkinter import ttk, simpledialog, messagebox
+from tkinter import ttk, simpledialog
 import threading
 import webbrowser
 import logging
@@ -61,6 +61,8 @@ class ReminderApp:
         # ── Construir UI y cargar datos ───────────────────────────────────────
         self._build_ui()
         self._load_config_into_ui()
+        self._update_status(self._t("msg_ready"), COLOR_STATUS_INFO)
+        self._schedule_auto_send_on_open_if_enabled()
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -179,7 +181,7 @@ class ReminderApp:
         self._combobox_account.pack(anchor="w")
 
     def _build_auto_close_frame(self) -> None:
-        """Frame con checkbox y campo para configurar el cierre automático post-envío."""
+        """Frame con checkboxes de comportamiento automático y su configuración."""
         frame = tk.LabelFrame(
             self.root, text=self._t("auto_close"), padx=10, pady=5
         )
@@ -189,6 +191,13 @@ class ReminderApp:
         tk.Checkbutton(
             frame, text=self._t("auto_close_check"), variable=self._auto_close_var
         ).pack(anchor="w")
+
+        self._auto_send_on_open_var = tk.BooleanVar()
+        tk.Checkbutton(
+            frame,
+            text=self._t("auto_send_on_open_check"),
+            variable=self._auto_send_on_open_var,
+        ).pack(anchor="w", pady=(5, 0))
 
         tk.Label(frame, text=self._t("auto_close_delay")).pack(anchor="w", pady=(5, 0))
         self._auto_close_delay_var = tk.StringVar()
@@ -233,7 +242,7 @@ class ReminderApp:
     def _build_status_bar(self) -> None:
         """Barra de estado en la parte inferior de la ventana."""
         self._status_label = tk.Label(
-            self.root, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W
+            self.root, text=self._t("msg_ready"), bd=1, relief=tk.SUNKEN, anchor=tk.W
         )
         self._status_label.pack(side=tk.BOTTOM, fill=tk.X)
 
@@ -249,12 +258,21 @@ class ReminderApp:
         self._text_body.insert("1.0", cfg.get("cuerpo", ""))
         self._auto_close_var.set(cfg.get("auto_close", True))
         self._auto_close_delay_var.set(str(cfg.get("auto_close_delay", 60)))
+        self._auto_send_on_open_var.set(cfg.get("auto_send_on_open", False))
 
         # Restaura la última cuenta usada si sigue estando disponible en Outlook
         saved_account = cfg.get("cuenta_seleccionada", "")
         if saved_account and saved_account in self._accounts:
             idx = self._accounts.index(saved_account)
             self._combobox_account.current(idx)
+
+    def _schedule_auto_send_on_open_if_enabled(self) -> None:
+        """Programa el autoenvío opcional una vez que la ventana ya fue creada."""
+        if not self._auto_send_on_open_var.get():
+            return
+
+        self._update_status(self._t("msg_auto_send_pending"), COLOR_STATUS_INFO)
+        self.root.after(500, self._send_email)
 
     # ── Acciones de usuario ───────────────────────────────────────────────────
 
@@ -357,6 +375,7 @@ class ReminderApp:
             "cuerpo": self._text_body.get("1.0", tk.END).strip(),
             "auto_close": self._auto_close_var.get(),
             "auto_close_delay": int(self._auto_close_delay_var.get() or 60),
+            "auto_send_on_open": self._auto_send_on_open_var.get(),
             "cuenta_seleccionada": self._combobox_account.get(),
             "language": self._i18n.language,
         }
@@ -381,6 +400,7 @@ class ReminderApp:
             "cuerpo": self._text_body.get("1.0", tk.END).strip(),
             "auto_close": self._auto_close_var.get(),
             "auto_close_delay": int(self._auto_close_delay_var.get() or 60),
+            "auto_send_on_open": self._auto_send_on_open_var.get(),
             "cuenta_seleccionada": self._combobox_account.get(),
             "language": lang,  # Guardar el nuevo idioma
         }

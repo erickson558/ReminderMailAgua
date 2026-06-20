@@ -10,6 +10,7 @@
     "auto_close": "Configuración de Cierre Automático",
     "auto_close_check": "Cerrar automáticamente la aplicación tras enviar el correo",
     "auto_close_delay": "Tiempo de espera para cierre automático (segundos):",
+    "auto_send_on_open_check": "Enviar automáticamente el correo al abrir la aplicación",
     "send": "Enviar Correo",
     "save_config": "Guardar configuración",
     "exit": "Salir",
@@ -28,5 +29,7 @@
     "msg_error_save": "Error al guardar la configuración: {e}",
     "msg_error_accounts": "Error al obtener cuentas de Outlook: {e}",
     "msg_sending": "Enviando correo...",
+    "msg_ready": "Listo para enviar.",
+    "msg_auto_send_pending": "Autoenvío programado al abrir la aplicación.",
     "dialog_add_recipient": "Agregar destinatario"
 }

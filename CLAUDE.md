@@ -59,6 +59,8 @@ docs/
 | **Placeholders** | `[Mes anterior en letras]` → previous month in Spanish from the current PC date; `[año en numero]` → matching year |
 | **Account filtering** | The recipient list is respected as configured, even if it includes the selected sender account |
 | **GUI recipient source** | Send/save actions normalize and use the recipient list currently visible in the GUI |
+| **Status bar** | Visible from startup and updated for ready/sending/sent/error states |
+| **Auto-send on open** | Optional checkbox persisted in config; if enabled, the app sends after opening |
 | **Auto-close** | Optional countdown after successful send (configurable seconds) |
 | **Multi-language** | ES/EN, persisted as `"language"` key in config.json |
 | **Threading** | Email send runs in daemon thread — GUI never freezes |
@@ -76,6 +78,7 @@ docs/
 | `cuerpo` | `str` | Email body template (supports placeholders) |
 | `auto_close` | `bool` | Enable auto-close after successful send |
 | `auto_close_delay` | `int` | Seconds before auto-close (default: 60) |
+| `auto_send_on_open` | `bool` | Automatically trigger send after the app opens |
 | `cuenta_seleccionada` | `str` | Last selected sender account (SMTP) |
 | `language` | `str` | UI language: `"es"` or `"en"` |
 

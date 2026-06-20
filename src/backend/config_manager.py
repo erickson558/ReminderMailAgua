@@ -16,6 +16,7 @@ DEFAULT_CONFIG: dict = {
     "cuerpo": "Recordatorio de pagar el agua del [Mes anterior en letras] de [año en numero]",
     "auto_close": True,
     "auto_close_delay": 60,
+    "auto_send_on_open": False,
     "cuenta_seleccionada": "",
     "language": "es",
 }

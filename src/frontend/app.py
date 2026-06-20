@@ -32,6 +32,14 @@ COLOR_BEER_FG = "#FF8C00"   # Naranja: botón donación
 COLOR_STATUS_OK = "green"
 COLOR_STATUS_ERR = "red"
 COLOR_STATUS_INFO = "blue"
+WINDOW_WIDTH = 760
+WINDOW_HEIGHT = 820
+LISTBOX_WIDTH = 78
+ENTRY_WIDTH = 78
+TEXT_WIDTH = 78
+TEXT_HEIGHT = 6
+ACCOUNT_WIDTH = 72
+STATUS_WRAP_LENGTH = 540
 
 
 class ReminderApp:
@@ -57,7 +65,9 @@ class ReminderApp:
         # ── Ventana raíz ──────────────────────────────────────────────────────
         self.root = tk.Tk()
         self.root.title(self._t("title"))
-        self.root.resizable(False, False)
+        self.root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
+        self.root.minsize(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.root.resizable(True, True)
 
         # ── Construir UI y cargar datos ───────────────────────────────────────
         self._build_ui()
@@ -124,9 +134,9 @@ class ReminderApp:
         self._build_body_field()
         self._build_account_frame()
         self._build_auto_close_frame()
-        self._build_status_bar()
         self._build_action_buttons()
         self._build_beer_button()
+        self._build_status_bar()
 
     def _build_menu(self) -> None:
         """Crea la barra de menú con selector de idioma."""
@@ -143,11 +153,11 @@ class ReminderApp:
     def _build_recipients_frame(self) -> None:
         """Frame con listbox de destinatarios y botones de gestión."""
         frame = tk.LabelFrame(self.root, text=self._t("recipients"), padx=5, pady=5)
-        frame.pack(pady=(10, 0), fill=tk.X, padx=10)
+        frame.pack(pady=(8, 0), fill=tk.X, padx=10)
 
         # Listbox con selección múltiple para poder eliminar varios a la vez
         self._listbox_recipients = tk.Listbox(
-            frame, width=55, height=5, selectmode=tk.EXTENDED
+            frame, width=LISTBOX_WIDTH, height=5, selectmode=tk.EXTENDED
         )
         self._listbox_recipients.pack(pady=(0, 5))
 
@@ -162,27 +172,39 @@ class ReminderApp:
 
     def _build_subject_field(self) -> None:
         """Etiqueta y campo de entrada para el asunto del correo."""
-        tk.Label(self.root, text=self._t("subject")).pack(pady=(10, 0))
-        self._entry_subject = tk.Entry(self.root, width=55)
-        self._entry_subject.pack(pady=5)
+        tk.Label(self.root, text=self._t("subject")).pack(pady=(8, 0))
+        self._entry_subject = tk.Entry(self.root, width=ENTRY_WIDTH)
+        self._entry_subject.pack(pady=4)
 
     def _build_body_field(self) -> None:
         """Etiqueta y área de texto para el cuerpo del correo."""
-        tk.Label(self.root, text=self._t("body")).pack(pady=(10, 0))
-        self._text_body = tk.Text(self.root, width=55, height=10)
-        self._text_body.pack(pady=5)
+        tk.Label(self.root, text=self._t("body")).pack(pady=(8, 0))
+        frame = tk.Frame(self.root)
+        frame.pack(pady=4)
+
+        scrollbar = tk.Scrollbar(frame)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self._text_body = tk.Text(
+            frame,
+            width=TEXT_WIDTH,
+            height=TEXT_HEIGHT,
+            yscrollcommand=scrollbar.set,
+        )
+        self._text_body.pack(side=tk.LEFT)
+        scrollbar.config(command=self._text_body.yview)
 
     def _build_account_frame(self) -> None:
         """Frame con combobox para seleccionar la cuenta de Outlook desde donde enviar."""
         frame = tk.LabelFrame(self.root, text=self._t("send_account"), padx=10, pady=5)
-        frame.pack(padx=10, pady=5, fill="both")
+        frame.pack(padx=10, pady=4, fill="both")
 
         tk.Label(frame, text=self._t("select_account")).pack(anchor="w", pady=(0, 3))
 
         # Obtiene las cuentas disponibles en Outlook (puede ser [] si Outlook no está instalado)
         self._accounts = get_outlook_accounts()
         self._combobox_account = ttk.Combobox(
-            frame, values=self._accounts, state="readonly", width=50
+            frame, values=self._accounts, state="readonly", width=ACCOUNT_WIDTH
         )
         if self._accounts:
             self._combobox_account.current(0)
@@ -193,7 +215,7 @@ class ReminderApp:
         frame = tk.LabelFrame(
             self.root, text=self._t("auto_close"), padx=10, pady=5
         )
-        frame.pack(padx=10, pady=5, fill="both")
+        frame.pack(padx=10, pady=4, fill="both")
 
         self._auto_close_var = tk.BooleanVar()
         tk.Checkbutton(
@@ -214,7 +236,7 @@ class ReminderApp:
     def _build_action_buttons(self) -> None:
         """Fila de botones principales: Enviar, Guardar configuración, Salir."""
         frame = tk.Frame(self.root)
-        frame.pack(pady=10)
+        frame.pack(pady=(6, 4))
 
         # Botón Enviar: verde para destacarlo como acción principal
         self._btn_send = tk.Button(
@@ -245,7 +267,7 @@ class ReminderApp:
             cursor="hand2",       # Cursor de mano para indicar que es clickeable
             relief=tk.FLAT,       # Sin borde: aspecto de enlace
             command=lambda: webbrowser.open(BEER_URL),
-        ).pack(pady=(0, 6))
+        ).pack(pady=(0, 4))
 
     def _build_status_bar(self) -> None:
         """Bloque de estado visible con acceso rápido al archivo de log."""
@@ -257,7 +279,7 @@ class ReminderApp:
             text=self._t("msg_ready"),
             anchor=tk.W,
             justify=tk.LEFT,
-            wraplength=410,
+            wraplength=STATUS_WRAP_LENGTH,
             bg="#FFF7D6",
             fg=COLOR_STATUS_INFO,
             relief=tk.SUNKEN,

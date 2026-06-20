@@ -1,0 +1,8 @@
+# Dependencias de ReminderMailAgua
+# Instalar con: pip install -r requirements.txt
+
+# Interfaz COM con Outlook 365 (envío de correos)
+pywin32>=306
+
+# Compilación a ejecutable Windows
+pyinstaller>=6.0

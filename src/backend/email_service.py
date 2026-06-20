@@ -121,14 +121,11 @@ def send_email(
                     "abierto y la sesión esté activa (sin ventanas de confirmación pendientes)."
                 ) from exc_fallback
 
-        # Excluye al remitente de la lista de destinatarios para no enviarse a sí mismo
-        recipients = [r for r in recipients if r.strip().lower() != sender_lower]
-
     # ── Validar que haya destinatarios ────────────────────────────────────────
     if not recipients:
         raise ValueError(
             "No hay destinatarios válidos.\n"
-            "La lista estaba vacía o solo contenía la dirección del remitente."
+            "La lista estaba vacía."
         )
 
     # Formato requerido por Outlook: direcciones separadas por punto y coma

@@ -55,7 +55,7 @@ docs/
 | Behavior | Details |
 |----------|---------|
 | **Placeholders** | `[Mes anterior en letras]` → previous month in Spanish; `[año en numero]` → year |
-| **Account filtering** | Sender's email is auto-excluded from the recipient list |
+| **Account filtering** | The recipient list is respected as configured, even if it includes the selected sender account |
 | **GUI recipient source** | Send/save actions normalize and use the recipient list currently visible in the GUI |
 | **Auto-close** | Optional countdown after successful send (configurable seconds) |
 | **Multi-language** | ES/EN, persisted as `"language"` key in config.json |

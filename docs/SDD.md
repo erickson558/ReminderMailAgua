@@ -100,7 +100,7 @@ except Exception:
 
 ### 4.3 Recipient Filtering
 
-The sender's own SMTP address is automatically removed from the recipient list to prevent self-sends. Comparison is case-insensitive after `.strip().lower()`.
+The app respects the recipient list exactly as configured in the GUI/config after normalization. If the selected sender account is also present in the recipient list, it is kept in `mail.To` so the sender can receive the message as well.
 
 ### 4.4 GUI Recipient Source of Truth
 
@@ -221,3 +221,4 @@ win32com is not auto-detected by PyInstaller; added explicitly:
 | 2026-06-19 | daemon=True on send thread | Ensures process exits cleanly if user closes window while sending |
 | 2026-06-19 | SentOnBehalfOfName as Hotmail fallback | Only documented working alternative to SendUsingAccount for HTTP accounts |
 | 2026-06-20 | Reuse repo-root config from dist/ during local builds | Prevents testing the exe against a stale or newly created second config.json |
+| 2026-06-20 | Keep sender addresses in recipients when explicitly listed | Users may want the selected Outlook account to receive the reminder too |

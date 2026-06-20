@@ -56,6 +56,7 @@ docs/
 |----------|---------|
 | **Placeholders** | `[Mes anterior en letras]` → previous month in Spanish; `[año en numero]` → year |
 | **Account filtering** | Sender's email is auto-excluded from the recipient list |
+| **GUI recipient source** | Send/save actions normalize and use the recipient list currently visible in the GUI |
 | **Auto-close** | Optional countdown after successful send (configurable seconds) |
 | **Multi-language** | ES/EN, persisted as `"language"` key in config.json |
 | **Threading** | Email send runs in daemon thread — GUI never freezes |

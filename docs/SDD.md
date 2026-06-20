@@ -102,7 +102,15 @@ except Exception:
 
 The sender's own SMTP address is automatically removed from the recipient list to prevent self-sends. Comparison is case-insensitive after `.strip().lower()`.
 
-### 4.4 Threading
+### 4.4 GUI Recipient Source of Truth
+
+The tkinter recipient listbox is the runtime source of truth for recipients.
+Before send/save operations, the app normalizes the list currently visible in the GUI:
+- trims surrounding whitespace
+- drops empty rows
+- deduplicates addresses case-insensitively while preserving first-seen order
+
+### 4.5 Threading
 
 All Outlook COM calls run in a `daemon=True` background thread.
 Status bar updates from the thread use `root.after(0, callback)` — the only thread-safe way to modify tkinter widgets.

@@ -75,6 +75,35 @@ class ReminderApp:
         """
         self.root.after(0, lambda: self._status_label.config(text=message, fg=color))
 
+    def _get_recipients_from_ui(self) -> list[str]:
+        """Retorna la lista actual de destinatarios visibles en la GUI."""
+        return self._normalize_recipients(self._listbox_recipients.get(0, tk.END))
+
+    def _normalize_recipients(self, recipients) -> list[str]:
+        """Limpia espacios, elimina vacíos y evita duplicados case-insensitive."""
+        normalized = []
+        seen = set()
+
+        for raw_value in recipients:
+            recipient = raw_value.strip()
+            if not recipient:
+                continue
+
+            recipient_key = recipient.lower()
+            if recipient_key in seen:
+                continue
+
+            seen.add(recipient_key)
+            normalized.append(recipient)
+
+        return normalized
+
+    def _replace_recipients_in_ui(self, recipients: list[str]) -> None:
+        """Normaliza y reemplaza el contenido del listbox de destinatarios."""
+        self._listbox_recipients.delete(0, tk.END)
+        for recipient in self._normalize_recipients(recipients):
+            self._listbox_recipients.insert(tk.END, recipient)
+
     # ── Construcción de la UI ─────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
@@ -214,8 +243,7 @@ class ReminderApp:
         """Puebla los widgets con los valores del config.json."""
         cfg = self._config.data
 
-        for recipient in cfg.get("destinatarios", []):
-            self._listbox_recipients.insert(tk.END, recipient)
+        self._replace_recipients_in_ui(cfg.get("destinatarios", []))
 
         self._entry_subject.insert(0, cfg.get("asunto", ""))
         self._text_body.insert("1.0", cfg.get("cuerpo", ""))
@@ -236,7 +264,9 @@ class ReminderApp:
             self._t("dialog_add_recipient"), self._t("msg_add_recipient")
         )
         if email and email.strip():
-            self._listbox_recipients.insert(tk.END, email.strip())
+            recipients = self._get_recipients_from_ui()
+            recipients.append(email)
+            self._replace_recipients_in_ui(recipients)
             self._update_status(self._t("msg_added"), COLOR_STATUS_OK)
 
     def _remove_recipient(self) -> None:
@@ -257,7 +287,7 @@ class ReminderApp:
         El hilo es daemon=True para que no bloquee el cierre del proceso
         si el usuario cierra la app mientras envía.
         """
-        recipients = list(self._listbox_recipients.get(0, tk.END))
+        recipients = self._get_recipients_from_ui()
         if not recipients:
             self._update_status(self._t("msg_add_one"), COLOR_STATUS_ERR)
             return
@@ -322,7 +352,7 @@ class ReminderApp:
     def _save_config(self) -> None:
         """Recopila el estado actual de los widgets y lo persiste en config.json."""
         data = {
-            "destinatarios": list(self._listbox_recipients.get(0, tk.END)),
+            "destinatarios": self._get_recipients_from_ui(),
             "asunto": self._entry_subject.get(),
             "cuerpo": self._text_body.get("1.0", tk.END).strip(),
             "auto_close": self._auto_close_var.get(),
@@ -346,7 +376,7 @@ class ReminderApp:
         """
         # Capturar el estado actual antes de destruir la ventana
         current_data = {
-            "destinatarios": list(self._listbox_recipients.get(0, tk.END)),
+            "destinatarios": self._get_recipients_from_ui(),
             "asunto": self._entry_subject.get(),
             "cuerpo": self._text_body.get("1.0", tk.END).strip(),
             "auto_close": self._auto_close_var.get(),

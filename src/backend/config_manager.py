@@ -23,12 +23,47 @@ DEFAULT_CONFIG: dict = {
 CONFIG_FILENAME = "config.json"
 
 
+def _resolve_config_path(base_path: str) -> str:
+    """
+    Resuelve la ubicación de config.json.
+
+    Prioriza la carpeta base recibida. Como fallback para desarrollo, si el
+    ejecutable vive dentro de dist/ y allí todavía no existe config.json,
+    reutiliza el config.json de la raíz del proyecto para evitar trabajar con
+    dos archivos de configuración distintos.
+    """
+    primary_path = os.path.join(base_path, CONFIG_FILENAME)
+    if os.path.exists(primary_path):
+        return primary_path
+
+    parent_path = os.path.dirname(base_path)
+    parent_config_path = os.path.join(parent_path, CONFIG_FILENAME)
+    parent_has_project_markers = all(
+        os.path.exists(os.path.join(parent_path, marker))
+        for marker in ("main.py", "src")
+    )
+
+    if (
+        os.path.basename(os.path.normpath(base_path)).lower() == "dist"
+        and os.path.exists(parent_config_path)
+        and parent_has_project_markers
+    ):
+        logger.info(
+            "Usando config.json de la raíz del proyecto: %s",
+            parent_config_path,
+        )
+        return parent_config_path
+
+    return primary_path
+
+
 class ConfigManager:
     """
     Maneja la lectura y escritura de config.json.
 
-    El archivo se ubica siempre junto al ejecutable (o junto a main.py en modo
-    script), usando el base_path que recibe en el constructor.
+    El archivo se ubica junto al ejecutable/script. En desarrollo, si el exe
+    corre desde dist/ dentro del repo, reutiliza el config.json de la raíz del
+    proyecto para evitar configuraciones duplicadas.
     """
 
     def __init__(self, base_path: str):
@@ -36,7 +71,7 @@ class ConfigManager:
         Args:
             base_path: Ruta raíz del proyecto (donde vive config.json).
         """
-        self.config_path = os.path.join(base_path, CONFIG_FILENAME)
+        self.config_path = _resolve_config_path(base_path)
         self.data: dict = self._load()
 
     # ── Lectura ───────────────────────────────────────────────────────────────

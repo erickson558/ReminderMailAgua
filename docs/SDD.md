@@ -138,6 +138,9 @@ On language change, the app saves config and recreates the ReminderApp with the 
 ### 6.1 File Location
 
 `config.json` is located **next to the executable** (or next to `main.py` in script mode).
+For local development builds, if the executable is launched from `dist/` and no
+`dist/config.json` exists yet, the app reuses the repository-root `config.json`
+instead of creating a second divergent config file.
 
 Frozen detection:
 ```python
@@ -170,6 +173,9 @@ PyInstaller 6.x, configured in `reminderagua.spec`.
 When frozen (one-file exe), PyInstaller extracts bundled data to `sys._MEIPASS`.
 - **Bundled read-only resources** (locales): read from `sys._MEIPASS`
 - **User-writable data** (config.json, logs): read/written next to `sys.executable`
+- **Development fallback:** if `sys.executable` lives in `dist/` inside the repo and
+  `dist/config.json` is missing, config reads/writes use the repo-root `config.json`
+  to keep manual edits and test runs aligned
 
 ### 7.4 Hidden Imports
 win32com is not auto-detected by PyInstaller; added explicitly:
@@ -206,3 +212,4 @@ win32com is not auto-detected by PyInstaller; added explicitly:
 | 2026-06-19 | Restart approach for language change | Simpler than binding every label to a StringVar; avoids complex widget rebuild |
 | 2026-06-19 | daemon=True on send thread | Ensures process exits cleanly if user closes window while sending |
 | 2026-06-19 | SentOnBehalfOfName as Hotmail fallback | Only documented working alternative to SendUsingAccount for HTTP accounts |
+| 2026-06-20 | Reuse repo-root config from dist/ during local builds | Prevents testing the exe against a stale or newly created second config.json |

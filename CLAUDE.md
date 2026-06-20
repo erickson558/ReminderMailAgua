@@ -60,6 +60,7 @@ docs/
 | **Multi-language** | ES/EN, persisted as `"language"` key in config.json |
 | **Threading** | Email send runs in daemon thread — GUI never freezes |
 | **Beer button** | Opens PayPal donation link in default browser |
+| **Config fallback** | Local `dist/reminderagua.exe` reuses repo-root `config.json` if `dist/config.json` does not exist |
 
 ---
 

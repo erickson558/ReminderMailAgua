@@ -109,6 +109,7 @@ class ReminderAppRecipientFlowTests(unittest.TestCase):
         app._t = lambda key, **kwargs: key
         app._start_countdown = Mock()
         app._accounts = ["sender@example.com", "other@example.com"]
+        app._base_path = "D:\\app"
         return app
 
     def test_get_recipients_from_ui_normalizes_and_deduplicates(self):
@@ -214,6 +215,25 @@ class ReminderAppRecipientFlowTests(unittest.TestCase):
         self.assertEqual(app._auto_close_delay_var.get(), "45")
         self.assertTrue(app._auto_send_on_open_var.get())
         self.assertEqual(app._combobox_account.current_index, 1)
+
+    def test_get_log_path_points_to_base_path(self):
+        app = self._build_app([])
+
+        self.assertEqual(app._get_log_path(), "D:\\app\\reminderagua.log")
+
+    @patch("src.frontend.app.logger")
+    @patch("src.frontend.app.send_email", side_effect=RuntimeError("fallo outlook"))
+    def test_send_in_background_reports_error_and_log_hint(self, send_email, logger_mock):
+        app = self._build_app(["gui@example.com"])
+        app._status_label = Mock()
+
+        app._send_in_background(["gui@example.com"], "Asunto", "Cuerpo", "sender@example.com")
+
+        for _, callback in app.root.after_calls:
+            callback()
+
+        logger_mock.exception.assert_called_once()
+        self.assertIn({"state": app_module.tk.NORMAL}, app._btn_send.states)
 
 
 if __name__ == "__main__":

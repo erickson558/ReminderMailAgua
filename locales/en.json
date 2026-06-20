@@ -14,6 +14,8 @@
     "send": "Send Email",
     "save_config": "Save configuration",
     "exit": "Exit",
+    "status": "Status",
+    "open_log": "Open log",
     "buy_beer": "☕  Buy me a beer",
     "language": "Language",
     "msg_add_recipient": "Enter recipient email:",
@@ -31,5 +33,8 @@
     "msg_sending": "Sending email...",
     "msg_ready": "Ready to send.",
     "msg_auto_send_pending": "Auto-send scheduled on application start.",
+    "msg_open_log_ok": "Opening log file.",
+    "msg_open_log_error": "Could not open log: {e}",
+    "msg_check_log": "Check reminderagua.log for more details.",
     "dialog_add_recipient": "Add recipient"
 }

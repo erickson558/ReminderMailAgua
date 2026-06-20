@@ -14,6 +14,8 @@
     "send": "Enviar Correo",
     "save_config": "Guardar configuración",
     "exit": "Salir",
+    "status": "Estado",
+    "open_log": "Abrir log",
     "buy_beer": "☕  Cómprame una cerveza",
     "language": "Idioma",
     "msg_add_recipient": "Ingrese el correo del destinatario:",
@@ -31,5 +33,8 @@
     "msg_sending": "Enviando correo...",
     "msg_ready": "Listo para enviar.",
     "msg_auto_send_pending": "Autoenvío programado al abrir la aplicación.",
+    "msg_open_log_ok": "Abriendo archivo de log.",
+    "msg_open_log_error": "No se pudo abrir el log: {e}",
+    "msg_check_log": "Revise reminderagua.log para más detalles.",
     "dialog_add_recipient": "Agregar destinatario"
 }

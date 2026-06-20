@@ -60,6 +60,7 @@ docs/
 | **Account filtering** | The recipient list is respected as configured, even if it includes the selected sender account |
 | **GUI recipient source** | Send/save actions normalize and use the recipient list currently visible in the GUI |
 | **Status bar** | Visible from startup and updated for ready/sending/sent/error states |
+| **Log access** | GUI includes an "Abrir log" button for `reminderagua.log` beside the script/exe |
 | **Auto-send on open** | Optional checkbox persisted in config; if enabled, the app sends after opening |
 | **Auto-close** | Optional countdown after successful send (configurable seconds) |
 | **Multi-language** | ES/EN, persisted as `"language"` key in config.json |

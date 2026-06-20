@@ -13,6 +13,7 @@ from tkinter import ttk, simpledialog
 import threading
 import webbrowser
 import logging
+import os
 
 from src.backend.config_manager import ConfigManager
 from src.backend.email_service import get_outlook_accounts, send_email
@@ -75,7 +76,14 @@ class ReminderApp:
         Actualiza la barra de estado de forma thread-safe.
         Usa root.after(0) para evitar llamadas directas a tkinter desde hilos.
         """
-        self.root.after(0, lambda: self._status_label.config(text=message, fg=color))
+        self.root.after(
+            0,
+            lambda: self._status_label.config(text=message, fg=color),
+        )
+
+    def _get_log_path(self) -> str:
+        """Retorna la ruta del archivo de log junto al script o ejecutable."""
+        return os.path.join(self._base_path, "reminderagua.log")
 
     def _get_recipients_from_ui(self) -> list[str]:
         """Retorna la lista actual de destinatarios visibles en la GUI."""
@@ -116,9 +124,9 @@ class ReminderApp:
         self._build_body_field()
         self._build_account_frame()
         self._build_auto_close_frame()
+        self._build_status_bar()
         self._build_action_buttons()
         self._build_beer_button()
-        self._build_status_bar()
 
     def _build_menu(self) -> None:
         """Crea la barra de menú con selector de idioma."""
@@ -240,11 +248,31 @@ class ReminderApp:
         ).pack(pady=(0, 6))
 
     def _build_status_bar(self) -> None:
-        """Barra de estado en la parte inferior de la ventana."""
+        """Bloque de estado visible con acceso rápido al archivo de log."""
+        frame = tk.LabelFrame(self.root, text=self._t("status"), padx=8, pady=6)
+        frame.pack(padx=10, pady=(0, 8), fill=tk.X)
+
         self._status_label = tk.Label(
-            self.root, text=self._t("msg_ready"), bd=1, relief=tk.SUNKEN, anchor=tk.W
+            frame,
+            text=self._t("msg_ready"),
+            anchor=tk.W,
+            justify=tk.LEFT,
+            wraplength=410,
+            bg="#FFF7D6",
+            fg=COLOR_STATUS_INFO,
+            relief=tk.SUNKEN,
+            bd=1,
+            padx=8,
+            pady=6,
         )
-        self._status_label.pack(side=tk.BOTTOM, fill=tk.X)
+        self._status_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        tk.Button(
+            frame,
+            text=self._t("open_log"),
+            width=12,
+            command=self._open_log_file,
+        ).pack(side=tk.LEFT, padx=(8, 0))
 
     # ── Carga de configuración en la UI ───────────────────────────────────────
 
@@ -273,6 +301,15 @@ class ReminderApp:
 
         self._update_status(self._t("msg_auto_send_pending"), COLOR_STATUS_INFO)
         self.root.after(500, self._send_email)
+
+    def _open_log_file(self) -> None:
+        """Abre el archivo de log actual para revisar errores de envío."""
+        try:
+            os.startfile(self._get_log_path())
+            self._update_status(self._t("msg_open_log_ok"), COLOR_STATUS_INFO)
+        except OSError as exc:
+            logger.exception("No se pudo abrir el archivo de log")
+            self._update_status(self._t("msg_open_log_error", e=exc), COLOR_STATUS_ERR)
 
     # ── Acciones de usuario ───────────────────────────────────────────────────
 
@@ -317,6 +354,12 @@ class ReminderApp:
 
         # Deshabilitar botón para evitar dobles envíos accidentales
         self._btn_send.config(state=tk.DISABLED)
+        logger.info(
+            "Preparando envío. Destinatarios GUI=%s | Cuenta=%s | Log=%s",
+            recipients,
+            account,
+            self._get_log_path(),
+        )
         self._update_status(self._t("msg_sending"), COLOR_STATUS_INFO)
 
         thread = threading.Thread(
@@ -344,8 +387,11 @@ class ReminderApp:
                 self.root.after(0, lambda: self._start_countdown(delay))
 
         except Exception as exc:
-            logger.error("Error al enviar correo: %s", exc)
-            self._update_status(self._t("msg_error_send", e=exc), COLOR_STATUS_ERR)
+            logger.exception("Error al enviar correo en hilo de fondo")
+            self._update_status(
+                f"{self._t('msg_error_send', e=exc)} {self._t('msg_check_log')}",
+                COLOR_STATUS_ERR,
+            )
 
         finally:
             # Siempre re-habilita el botón al terminar (éxito o error)

@@ -148,6 +148,12 @@ Because Outlook automation uses COM, each worker thread explicitly initializes a
 - If `auto_send_on_open` is enabled in `config.json`, the app schedules `_send_email()` with `root.after(...)` after the window is created.
 - The send still uses the same runtime source of truth: the recipients, subject, body, and selected account currently loaded into the GUI.
 
+### 4.8 Error Visibility And Log Access
+
+- The GUI exposes a visible status block in the main layout instead of a nearly hidden footer-only label.
+- The status block includes a button to open `reminderagua.log`, stored next to `main.py` or the compiled executable.
+- Send failures are logged with traceback detail so Outlook/COM errors can be inspected after a failed attempt.
+
 ---
 
 ## 5. Internationalization

@@ -136,6 +136,8 @@ Example for a PC date of 2026-06-20:
 All Outlook COM calls run in a `daemon=True` background thread.
 Status bar updates from the thread use `root.after(0, callback)` — the only thread-safe way to modify tkinter widgets.
 
+Because Outlook automation uses COM, each worker thread explicitly initializes and uninitializes COM before calling `win32com.client.Dispatch(...)`.
+
 ---
 
 ## 5. Internationalization

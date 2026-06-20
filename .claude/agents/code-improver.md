@@ -41,7 +41,12 @@ Follow these rules:
 1. Update docs/SDD.md with architectural decisions
 2. Update CLAUDE.md if new behaviors or files were added
 3. Run: `python main.py` to verify the app starts without errors
-4. Suggest: `pyinstaller reminderagua.spec --clean` to recompile
+4. If a rebuild was requested, run `pyinstaller reminderagua.spec --noconfirm --workpath build_tmp --distpath dist_tmp`
+5. If a rebuild was requested, refresh both `dist/reminderagua.exe` and `./reminderagua.exe`
+
+### Validation notes for this repo
+- Placeholder tokens `[Mes anterior en letras]` and `[año en numero]` must resolve from the current PC date at send time
+- Validate current behavior through `main.py` and `reminderagua.spec`, not through legacy scripts/specs
 
 ## Architecture standards
 

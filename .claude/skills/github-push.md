@@ -32,7 +32,10 @@ git add requirements.txt
 git add reminderagua.spec
 git add CLAUDE.md
 git add .gitignore
+git add tests/
 ```
+
+If the task included a rebuild, verify locally that both `dist/reminderagua.exe` and `./reminderagua.exe` were refreshed before pushing source changes. Do not stage those binaries.
 
 ### Step 4 — Commit with descriptive message
 ```bash
@@ -51,6 +54,7 @@ git push -u origin main
 
 ### Files to NEVER commit
 - `reminderagua.exe` (binary, 16MB+, generated)
+- `dist_tmp/` directory (temporary build output)
 - `build/` directory (PyInstaller intermediates)
 - `dist/` directory (built executables)
 - `*.log` (runtime logs)

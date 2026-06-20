@@ -73,3 +73,7 @@ Report:
 2. Which method (SendUsingAccount vs SentOnBehalfOfName) succeeded
 3. Exact error message if both failed
 4. Recommended fix in email_service.py
+
+## Scope guard for this repo
+- Reproduce send behavior from `main.py` or a freshly built `reminderagua.exe`
+- Do not use legacy scripts/specs to validate whether placeholders were resolved

@@ -1,7 +1,7 @@
 # Software Design Document — ReminderMailAgua
 
-**Version:** 2.0
-**Date:** 2026-06-19
+**Version:** 2.1
+**Date:** 2026-06-20
 **Author:** erickson558
 
 ---
@@ -22,8 +22,8 @@
 | F-01 | Send email to a configurable list of recipients via Outlook 365 | ✓ |
 | F-02 | Allow adding and removing recipients from the GUI | ✓ |
 | F-03 | Support selecting which Outlook account to send from | ✓ |
-| F-04 | Replace `[Mes anterior en letras]` with previous month name in Spanish | ✓ |
-| F-05 | Replace `[año en numero]` with the year of the previous month | ✓ |
+| F-04 | Replace `[Mes anterior en letras]` with previous month name in Spanish using the PC date | ✓ |
+| F-05 | Replace `[año en numero]` with the year of the previous month using the PC date | ✓ |
 | F-06 | Persist configuration to config.json | ✓ |
 | F-07 | Auto-close application after send with configurable countdown | ✓ |
 | F-08 | Support Hotmail/Outlook.com personal accounts | ✓ (v2 fix) |
@@ -74,6 +74,12 @@ On save:
   → ConfigManager.save(data) writes config.json
 ```
 
+### 3.4 Validation Notes
+
+- The placeholder replacement used by the current app is the `main.py` → `src/frontend/app.py` → `src/backend/date_utils.py` path.
+- The placeholder resolution happens immediately before sending the email, using `datetime.datetime.now()` from the local PC.
+- Legacy artifacts such as `reminderagua.py`, `reminder.spec`, and `reminderfactura.spec` are not the authoritative v2 implementation path and must not be used to validate current placeholder behavior.
+
 ---
 
 ## 4. Email Sending Strategy
@@ -110,7 +116,22 @@ Before send/save operations, the app normalizes the list currently visible in th
 - drops empty rows
 - deduplicates addresses case-insensitively while preserving first-seen order
 
-### 4.5 Threading
+### 4.5 Placeholder Resolution
+
+The subject and body shown in the GUI may contain literal tokens such as `[Mes anterior en letras]` and `[año en numero]`.
+
+These tokens are intentionally persisted in `config.json` and in the UI template fields. They are resolved only at send time so the generated email always reflects the current PC date:
+
+```python
+subject = resolve_placeholders(self._entry_subject.get().strip())
+body = resolve_placeholders(self._text_body.get("1.0", tk.END).strip())
+```
+
+Example for a PC date of 2026-06-20:
+- `[Mes anterior en letras]` → `Mayo`
+- `[año en numero]` → `2026`
+
+### 4.6 Threading
 
 All Outlook COM calls run in a `daemon=True` background thread.
 Status bar updates from the thread use `root.after(0, callback)` — the only thread-safe way to modify tkinter widgets.
@@ -170,6 +191,8 @@ Existing v1 config.json files are fully compatible — missing keys get defaults
 ### 7.1 Tool
 PyInstaller 6.x, configured in `reminderagua.spec`.
 
+The authoritative executable is built from `main.py` through `reminderagua.spec`.
+
 ### 7.2 Bundled Resources
 | Resource | Why bundled |
 |----------|------------|
@@ -189,6 +212,14 @@ When frozen (one-file exe), PyInstaller extracts bundled data to `sys._MEIPASS`.
 win32com is not auto-detected by PyInstaller; added explicitly:
 `win32com.client`, `win32api`, `win32con`, `pywintypes`, `pythoncom`
 
+### 7.5 Build Outputs
+
+The build workflow maintains two local executable locations:
+- `dist/reminderagua.exe` as the canonical PyInstaller output for distribution
+- `./reminderagua.exe` in the project root, next to `main.py`, as an operational copy required by local workflows that expect the executable beside the Python entrypoint
+
+If the root executable does not exist, the build flow must create it by copying the fresh binary after compilation.
+
 ---
 
 ## 8. Bugs Fixed (v1 → v2)
@@ -204,11 +235,13 @@ win32com is not auto-detected by PyInstaller; added explicitly:
 
 ## 9. Deployment
 
-1. Run `pyinstaller reminderagua.spec --clean`
-2. Test `dist/reminderagua.exe` from the dist folder
-3. Distribute the `dist/` folder
-4. Users need: Windows 10/11 + Outlook 365 installed and configured
-5. Optionally schedule via Windows Task Scheduler using `matarreminder.xml` as reference template
+1. Run `pyinstaller reminderagua.spec --noconfirm --workpath build_tmp --distpath dist_tmp`
+2. Copy `dist_tmp/reminderagua.exe` to `dist/reminderagua.exe`
+3. Copy `dist_tmp/reminderagua.exe` to `./reminderagua.exe` if the root executable is missing or needs refresh
+4. Test `dist/reminderagua.exe` or `./reminderagua.exe` against the current repo config
+5. Distribute the `dist/` folder contents when packaging for end users
+6. Users need: Windows 10/11 + Outlook 365 installed and configured
+7. Optionally schedule via Windows Task Scheduler using `matarreminder.xml` as reference template
 
 ---
 
@@ -222,3 +255,5 @@ win32com is not auto-detected by PyInstaller; added explicitly:
 | 2026-06-19 | SentOnBehalfOfName as Hotmail fallback | Only documented working alternative to SendUsingAccount for HTTP accounts |
 | 2026-06-20 | Reuse repo-root config from dist/ during local builds | Prevents testing the exe against a stale or newly created second config.json |
 | 2026-06-20 | Keep sender addresses in recipients when explicitly listed | Users may want the selected Outlook account to receive the reminder too |
+| 2026-06-20 | Treat `main.py` + `reminderagua.spec` as the only authoritative v2 build path | Prevents validating placeholder behavior against legacy scripts/specs |
+| 2026-06-20 | Keep a fresh `reminderagua.exe` beside the Python entrypoint | Some local automation expects the executable in the project root |

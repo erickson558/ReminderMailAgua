@@ -12,8 +12,10 @@ python main.py
 
 ## Compile to EXE
 ```bash
-pyinstaller reminderagua.spec --clean
-# Output: dist/reminderagua.exe
+pyinstaller reminderagua.spec --noconfirm --workpath build_tmp --distpath dist_tmp
+Copy-Item dist_tmp\reminderagua.exe dist\reminderagua.exe -Force
+Copy-Item dist_tmp\reminderagua.exe .\reminderagua.exe -Force
+# Outputs: dist/reminderagua.exe and .\reminderagua.exe
 ```
 
 ---
@@ -54,7 +56,7 @@ docs/
 ## Key Behaviors
 | Behavior | Details |
 |----------|---------|
-| **Placeholders** | `[Mes anterior en letras]` → previous month in Spanish; `[año en numero]` → year |
+| **Placeholders** | `[Mes anterior en letras]` → previous month in Spanish from the current PC date; `[año en numero]` → matching year |
 | **Account filtering** | The recipient list is respected as configured, even if it includes the selected sender account |
 | **GUI recipient source** | Send/save actions normalize and use the recipient list currently visible in the GUI |
 | **Auto-close** | Optional countdown after successful send (configurable seconds) |
@@ -62,6 +64,7 @@ docs/
 | **Threading** | Email send runs in daemon thread — GUI never freezes |
 | **Beer button** | Opens PayPal donation link in default browser |
 | **Config fallback** | Local `dist/reminderagua.exe` reuses repo-root `config.json` if `dist/config.json` does not exist |
+| **Root exe copy** | After each build, `reminderagua.exe` is also copied beside `main.py` when local workflows require it |
 
 ---
 
